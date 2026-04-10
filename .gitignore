@@ -1,0 +1,11 @@
+# Generated sprite sheet (run gen-celeste-overlay.py to produce these)
+celeste-keys.png
+celeste-keys.json
+
+# Fonts (install Renogare separately — see README)
+*.otf
+*.ttf
+
+# LiveSplit splits / layouts
+*.lss
+*.lsl

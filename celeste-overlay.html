@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Celeste Input Overlay</title>
+    <style>
+        @font-face {
+            font-family: 'Renogare';
+            src: url('Renogare-Regular.otf') format('opentype');
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: transparent;
+            width: 256px;
+            height: 204px;
+            overflow: hidden;
+        }
+
+        /*
+          Layout — 5 cols × 48px keys, 4px gap (stride = 52px)
+          Col:    0     1     2     3     4
+          Row 0:  .    JUMP   .   JUMP   .     ← bumps
+          Row 1: GRAB   II   UP   DASH  DEMO   ← wide (flanking UP)
+          Row 2:  .    LEFT  DOWN RIGHT  .     ← arrow cluster
+        */
+
+        .key {
+            position: absolute;
+            width: 48px;
+            height: 48px;
+            border-radius: 7px;
+            background: #2a003a;
+            border: 1.5px solid #5a1080;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Renogare', monospace;
+            font-size: 10px;
+            color: #9040c0;
+            transition: background 0.04s, color 0.04s, border-color 0.04s;
+            user-select: none;
+            letter-spacing: 0.02em;
+        }
+
+        .key.arrow {
+            font-family: 'JetBrainsMono Nerd Font Mono', 'Symbols Nerd Font', monospace;
+            font-size: 18px;
+        }
+
+        .key.active {
+            background: #7b00cc;
+            border-color: #cc66ff;
+            color: #ffffff;
+        }
+
+        /* Row 0 — bumps */
+        #jump1 { left:  52px; top:   0; }
+        #jump2 { left: 156px; top:   0; }
+
+        /* Row 1 — wide */
+        #grab  { left:   0;   top:  52px; }
+        #esc   { left:  52px; top:  52px; }
+        #up    { left: 104px; top:  52px; }
+        #dash  { left: 156px; top:  52px; }
+        #demo  { left: 208px; top:  52px; }
+
+        /* Row 2 — arrow cluster */
+        #left  { left:  52px; top: 104px; }
+        #down  { left: 104px; top: 104px; }
+        #right { left: 156px; top: 104px; }
+
+        /* Row 3 — heart tip */
+        #talk  { left: 104px; top: 156px; }
+    </style>
+</head>
+<body>
+    <div id="jump1" class="key">JUMP</div>
+    <div id="jump2" class="key">JUMP</div>
+
+    <div id="grab"  class="key">GRAB</div>
+    <div id="esc"   class="key">II</div>
+    <div id="up"    class="key arrow">▲</div>
+    <div id="dash"  class="key">DASH</div>
+    <div id="demo"  class="key">DEMO</div>
+
+    <div id="left"  class="key arrow">◀</div>
+    <div id="down"  class="key arrow">▼</div>
+    <div id="right" class="key arrow">▶</div>
+
+    <div id="talk"  class="key">TALK</div>
+
+    <script>
+        // Windows scan code → element ID
+        const KEYMAP = {
+            0x0001: 'esc',    // Escape  → II (pause)
+            0x002E: 'jump1',  // C       → JUMP
+            0xE04B: 'left',   // Left arrow
+            0xE050: 'down',   // Down arrow
+            0xE048: 'up',     // Up arrow
+            0xE04D: 'right',  // Right arrow
+            0x002D: 'dash',   // X       → DASH
+            0x002A: 'grab',   // LShift  → GRAB
+            0x001E: 'jump2',  // A       → JUMP
+            0x0020: 'demo',   // D       → DEMO
+            0x001D: 'talk',   // LCtrl   → TALK
+        };
+
+        function setKey(code, pressed) {
+            const el = document.getElementById(KEYMAP[code]);
+            if (el) el.classList.toggle('active', pressed);
+        }
+
+        function connect() {
+            const ws = new WebSocket('ws://localhost:16900/');
+            ws.onmessage = e => {
+                const d = JSON.parse(e.data);
+                if (d.event_type === 'key_pressed')  setKey(d.keycode, true);
+                if (d.event_type === 'key_released') setKey(d.keycode, false);
+            };
+            ws.onerror  = () => {};
+            ws.onclose  = () => setTimeout(connect, 2000);
+        }
+
+        connect();
+    </script>
+</body>
+</html>
