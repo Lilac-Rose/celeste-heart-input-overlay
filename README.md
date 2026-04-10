@@ -47,7 +47,8 @@ Update the `ExecStart` path in the service file if you cloned somewhere other th
 
 - Add a **Browser** source
 - Set URL to `http://localhost:16901/celeste-heart-input-overlay.html`
-- Width: **256**, Height: **204**
+- Width: **2048**, Height: **1632**
+- Scale the source down on your canvas to whatever size looks right — it renders at 2K so it stays sharp at any size
 - If the source is black: go to OBS Settings → Advanced → disable **Browser Source Hardware Acceleration**
 
 That's it. The bridge starts automatically on login and reconnects if OBS restarts.
