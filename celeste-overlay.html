@@ -94,19 +94,22 @@
     <div id="talk"  class="key">TALK</div>
 
     <script>
-        // Windows scan code → element ID
+        // maps Windows scan codes to element IDs.
+        // these come from the bridge — it converts evdev codes to scan codes
+        // before sending, so this side stays consistent regardless of OS.
+        // if you change your bindings, update the bridge's KEYMAP and mirror it here.
         const KEYMAP = {
-            0x0001: 'esc',    // Escape  → II (pause)
-            0x002E: 'jump1',  // C       → JUMP
-            0xE04B: 'left',   // Left arrow
-            0xE050: 'down',   // Down arrow
+            0x0001: 'esc',    // Escape      → pause (II)
+            0x002E: 'jump1',  // C           → jump
             0xE048: 'up',     // Up arrow
+            0xE04B: 'left',   // Left arrow
             0xE04D: 'right',  // Right arrow
-            0x002D: 'dash',   // X       → DASH
-            0x002A: 'grab',   // LShift  → GRAB
-            0x001E: 'jump2',  // A       → JUMP
-            0x0020: 'demo',   // D       → DEMO
-            0x001D: 'talk',   // LCtrl   → TALK
+            0xE050: 'down',   // Down arrow
+            0x002D: 'dash',   // X           → dash
+            0x002A: 'grab',   // Left Shift  → grab
+            0x001E: 'jump2',  // A           → jump (alt bind)
+            0x0020: 'demo',   // D           → demo
+            0x001D: 'talk',   // Left Ctrl   → talk / interact
         };
 
         function setKey(code, pressed) {
@@ -116,13 +119,16 @@
 
         function connect() {
             const ws = new WebSocket('ws://localhost:16900/');
+
             ws.onmessage = e => {
                 const d = JSON.parse(e.data);
                 if (d.event_type === 'key_pressed')  setKey(d.keycode, true);
                 if (d.event_type === 'key_released') setKey(d.keycode, false);
             };
-            ws.onerror  = () => {};
-            ws.onclose  = () => setTimeout(connect, 2000);
+
+            ws.onerror = () => {};
+            // if the bridge restarts (e.g. after a crash), reconnect automatically
+            ws.onclose = () => setTimeout(connect, 2000);
         }
 
         connect();
