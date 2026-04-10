@@ -3,7 +3,7 @@ Description=Celeste input overlay bridge (evdev → WebSocket)
 After=graphical-session.target
 
 [Service]
-ExecStart=/usr/bin/python3 %h/Games/celeste-overlay/celeste-input-bridge.py
+ExecStart=/usr/bin/python3 %h/Games/celeste-heart-input-overlay/celeste-input-bridge.py
 Restart=on-failure
 RestartSec=3
 

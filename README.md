@@ -1,4 +1,4 @@
-# celeste-overlay
+# celeste-heart-input-overlay
 
 Keyboard input overlay for Celeste speedruns, built for Linux + Wayland + OBS.
 
@@ -14,8 +14,8 @@ GRAB  II  ▲  DASH DEMO
 ## How it works
 
 - `celeste-input-bridge.py` — reads your keyboard via evdev and serves key events over a WebSocket on `localhost:16900`. It also hosts the HTML file over HTTP on `localhost:16901` so OBS can load it without `file://` security restrictions.
-- `celeste-overlay.html` — the actual overlay. It connects to the WebSocket and lights up keys as you press them.
-- `gen-celeste-overlay.py` — optional, generates a sprite sheet PNG + JSON config if you want to use obs-plugin-input-overlay instead of the browser source. Probably don't bother, the HTML approach is simpler.
+- `celeste-heart-input-overlay.html` — the actual overlay. It connects to the WebSocket and lights up keys as you press them.
+- `gen-celeste-heart-input-overlay.py` — optional, generates a sprite sheet PNG + JSON config if you want to use obs-plugin-input-overlay instead of the browser source. Probably don't bother, the HTML approach is simpler.
 
 ## Requirements
 
@@ -30,8 +30,8 @@ GRAB  II  ▲  DASH DEMO
 **1. Clone and place the files**
 
 ```bash
-git clone https://github.com/Lilac-Rose/celeste-overlay
-cd celeste-overlay
+git clone https://github.com/Lilac-Rose/celeste-heart-input-overlay
+cd celeste-heart-input-overlay
 ```
 
 **2. Install the systemd service**
@@ -41,12 +41,12 @@ cp celeste-input-bridge.service ~/.config/systemd/user/
 systemctl --user enable --now celeste-input-bridge.service
 ```
 
-Update the `ExecStart` path in the service file if you cloned somewhere other than `~/Games/celeste-overlay`.
+Update the `ExecStart` path in the service file if you cloned somewhere other than `~/Games/celeste-heart-input-overlay`.
 
 **3. Add to OBS**
 
 - Add a **Browser** source
-- Set URL to `http://localhost:16901/celeste-overlay.html`
+- Set URL to `http://localhost:16901/celeste-heart-input-overlay.html`
 - Width: **256**, Height: **204**
 - If the source is black: go to OBS Settings → Advanced → disable **Browser Source Hardware Acceleration**
 
@@ -54,7 +54,7 @@ That's it. The bridge starts automatically on login and reconnects if OBS restar
 
 ## Key bindings
 
-These match the default Celeste bindings I use. If yours are different, edit the `KEYMAP` dict in `celeste-input-bridge.py` and the matching one in `celeste-overlay.html`.
+These match the default Celeste bindings I use. If yours are different, edit the `KEYMAP` dict in `celeste-input-bridge.py` and the matching one in `celeste-heart-input-overlay.html`.
 
 | Key | Action |
 |-----|--------|
@@ -68,7 +68,7 @@ These match the default Celeste bindings I use. If yours are different, edit the
 
 ## Customising the look
 
-All the colours and sizing are CSS variables at the top of `celeste-overlay.html`. The dark purple theme is:
+All the colours and sizing are CSS variables at the top of `celeste-heart-input-overlay.html`. The dark purple theme is:
 
 ```css
 background inactive: #2a003a
