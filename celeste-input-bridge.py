@@ -2,16 +2,13 @@
 """
 celeste-input-bridge.py
 
-The reason this exists: OBS browser sources on Wayland can't capture keyboard
-input because the underlying library (libuiohook) doesn't support Wayland.
-This script works around that by reading directly from /dev/input via evdev,
-then forwarding key events to the overlay over a local WebSocket.
+obs-plugin-input-overlay doesn't work on Wayland (libuiohook just doesn't support it),
+so this reads from /dev/input directly and handles everything itself.
 
-Two things are running here:
-  - HTTP server on port 16901: serves the overlay HTML so OBS can load it
-    from localhost instead of a file:// URL (file:// blocks WebSocket on some setups)
-  - WebSocket server on port 16900: pushes key_pressed / key_released events
-    to any connected clients (i.e. the overlay running in OBS)
+runs two things:
+  - HTTP on 16901: serves the overlay HTML so OBS can load it from localhost
+    instead of a file:// URL, which breaks WebSocket in some setups
+  - WebSocket on 16900: sends key_pressed / key_released events to the overlay
 """
 
 import asyncio
@@ -29,13 +26,13 @@ PORT     = 16900
 HTML_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-# serve the overlay HTML over HTTP so OBS can load it as a proper URL.
-# runs in a daemon thread so it doesn't block the async event loop.
+# tiny HTTP server so OBS can load the overlay as a real URL.
+# daemon thread so it doesn't block the async loop below.
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *a, **kw):
         super().__init__(*a, directory=HTML_DIR, **kw)
     def log_message(self, *_):
-        pass  # don't spam the terminal with HTTP request logs
+        pass  # nobody needs to see GET requests in their terminal
 
 def start_http():
     with TCPServer(('127.0.0.1', PORT + 1), Handler) as httpd:
@@ -46,10 +43,9 @@ print(f'HTML served at http://localhost:{PORT + 1}/celeste-overlay.html')
 
 
 # evdev keycodes → Windows scan codes.
-# the overlay HTML uses Windows scan codes because that's what most input
-# overlay tooling expects — regular keys map 1:1, extended keys (arrows etc.)
-# get the 0xE000 prefix that marks them as extended PS/2 scan codes.
-# if your bindings are different, change the left side of each entry.
+# regular keys map 1:1, arrow keys and other extended keys get the 0xE000 prefix
+# (that's just how PS/2 extended scan codes work).
+# change the left side of each line if your bindings are different.
 KEYMAP = {
     ecodes.KEY_ESC:        0x0001,  # pause
     ecodes.KEY_C:          0x002E,  # jump
@@ -64,17 +60,15 @@ KEYMAP = {
     ecodes.KEY_LEFTCTRL:   0x001D,  # talk / interact
 }
 
-# connected WebSocket clients — in practice this is just OBS, but the
-# set handles it gracefully if something else connects too
+# connected WebSocket clients — realistically just OBS, but a set works fine if anything else connects
 clients = set()
 
 
 def find_keyboards():
     """
-    Grab every /dev/input device that looks like a keyboard.
-    The check for KEY_A filters out things like media remotes and mice
-    that technically send EV_KEY events but aren't full keyboards.
-    Requires the user to be in the 'input' group.
+    Find every /dev/input device that looks like a keyboard.
+    Checking for KEY_A filters out mice and media remotes that send EV_KEY events
+    but aren't actual keyboards. needs the user to be in the 'input' group.
     """
     keyboards = []
     for path in evdev.list_devices():
@@ -90,14 +84,14 @@ def find_keyboards():
 
 
 async def broadcast(msg):
-    """Send a message to all connected clients. Errors on individual sends
-    are swallowed — a client disconnecting mid-send shouldn't crash everything."""
+    """Send to all connected clients. Individual send errors are swallowed so
+    a client disconnecting mid-send doesn't take everything else down."""
     if clients:
         await asyncio.gather(*[c.send(msg) for c in list(clients)], return_exceptions=True)
 
 
 async def handle_client(ws):
-    """Track connected WebSocket clients so broadcast() knows who to send to."""
+    """Just tracks who's connected so broadcast() has someone to send to."""
     clients.add(ws)
     print(f'client connected ({len(clients)} total)')
     try:
@@ -109,9 +103,9 @@ async def handle_client(ws):
 
 async def read_keyboard(dev):
     """
-    Read raw events from one keyboard device and forward mapped keys.
-    event.value: 1 = key down, 0 = key up, 2 = repeat (held).
-    We ignore repeats — the overlay only needs to know pressed/released.
+    Read events from one keyboard and forward the ones we care about.
+    event.value is 1 for key down, 0 for key up, 2 for held repeat.
+    Repeats get ignored — the overlay just needs pressed/released.
     """
     async for event in dev.async_read_loop():
         if event.type != ecodes.EV_KEY or event.value == 2:
@@ -132,7 +126,7 @@ async def main():
         print('no keyboards found in /dev/input — are you in the "input" group?')
         sys.exit(1)
 
-    # start the WebSocket server and all keyboard readers concurrently
+    # run the WebSocket server and all keyboard readers at the same time
     server = await websockets.serve(handle_client, '127.0.0.1', PORT)
     print(f'websocket listening on ws://localhost:{PORT}')
 
