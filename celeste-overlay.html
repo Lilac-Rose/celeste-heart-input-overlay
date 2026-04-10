@@ -13,31 +13,33 @@
 
         body {
             background: transparent;
-            width: 256px;
-            height: 204px;
+            width: 2048px;
+            height: 1632px;
             overflow: hidden;
         }
 
         /*
-          Layout — 5 cols × 48px keys, 4px gap (stride = 52px)
+          Layout — 5 cols × 384px keys, 32px gap (stride = 416px)
+          Rendered at 2048×1632 — scale down in OBS to whatever fits
           Col:    0     1     2     3     4
           Row 0:  .    JUMP   .   JUMP   .     ← bumps
           Row 1: GRAB   II   UP   DASH  DEMO   ← wide (flanking UP)
           Row 2:  .    LEFT  DOWN RIGHT  .     ← arrow cluster
+          Row 3:  .     .   TALK   .    .     ← heart tip
         */
 
         .key {
             position: absolute;
-            width: 48px;
-            height: 48px;
-            border-radius: 7px;
+            width: 384px;
+            height: 384px;
+            border-radius: 56px;
             background: #2a003a;
-            border: 1.5px solid #5a1080;
+            border: 12px solid #5a1080;
             display: flex;
             align-items: center;
             justify-content: center;
             font-family: 'Renogare', monospace;
-            font-size: 10px;
+            font-size: 80px;
             color: #9040c0;
             transition: background 0.04s, color 0.04s, border-color 0.04s;
             user-select: none;
@@ -46,7 +48,7 @@
 
         .key.arrow {
             font-family: 'JetBrainsMono Nerd Font Mono', 'Symbols Nerd Font', monospace;
-            font-size: 18px;
+            font-size: 144px;
         }
 
         .key.active {
@@ -56,23 +58,23 @@
         }
 
         /* Row 0 — bumps */
-        #jump1 { left:  52px; top:   0; }
-        #jump2 { left: 156px; top:   0; }
+        #jump1 { left:  416px; top:    0; }
+        #jump2 { left: 1248px; top:    0; }
 
         /* Row 1 — wide */
-        #grab  { left:   0;   top:  52px; }
-        #esc   { left:  52px; top:  52px; }
-        #up    { left: 104px; top:  52px; }
-        #dash  { left: 156px; top:  52px; }
-        #demo  { left: 208px; top:  52px; }
+        #grab  { left:    0;   top:  416px; }
+        #esc   { left:  416px; top:  416px; }
+        #up    { left:  832px; top:  416px; }
+        #dash  { left: 1248px; top:  416px; }
+        #demo  { left: 1664px; top:  416px; }
 
         /* Row 2 — arrow cluster */
-        #left  { left:  52px; top: 104px; }
-        #down  { left: 104px; top: 104px; }
-        #right { left: 156px; top: 104px; }
+        #left  { left:  416px; top:  832px; }
+        #down  { left:  832px; top:  832px; }
+        #right { left: 1248px; top:  832px; }
 
         /* Row 3 — heart tip */
-        #talk  { left: 104px; top: 156px; }
+        #talk  { left:  832px; top: 1248px; }
     </style>
 </head>
 <body>
