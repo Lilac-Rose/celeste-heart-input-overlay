@@ -4,8 +4,6 @@ Keyboard input overlay for Celeste speedruns, built for Linux + Wayland + OBS.
 
 The layout is a heart shape with keys labelled by what they do rather than which key they are. The bridge reads directly from `/dev/input` via evdev, so it works even though OBS's built-in browser source blocks native key hooks on Wayland.
 
-![layout preview](preview.png)
-
 ```
     JUMP       JUMP
 GRAB  II  ▲  DASH DEMO
